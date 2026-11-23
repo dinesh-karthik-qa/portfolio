@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dinesh Karthik | 12,000 open bugs</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,500;1,300&family=Jost:wght@300;400&display=swap" rel="stylesheet">
+<style>
+:root{--gold:#ffc86b;--ivory:#f6f0e2;--mist:#9fb0aa;--serif:"Cormorant Garamond",Georgia,serif;--sans:"Jost",Arial,sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#04070a;color:var(--ivory);font:300 1.05rem/1.65 var(--sans)}
+#gl{position:fixed;inset:0;width:100%;height:100%;display:block}
+.vig{position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 45%,rgba(4,7,10,.85) 100%)}
+#space{height:600vh}
+a{color:var(--gold);border-bottom:1px solid rgba(255,200,107,.5);text-decoration:none}
+:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+
+.hud{position:fixed;top:1.3rem;left:clamp(1.25rem,4vw,3rem);z-index:3;font-family:var(--serif)}
+.hud b{font-size:clamp(1.8rem,4vw,2.6rem);font-weight:500;color:#ff6a4d;transition:color .6s}
+.hud.ok b{color:var(--gold)}
+.hud span{display:block;font:300 .9rem var(--sans);color:var(--mist)}
+
+.cap{position:fixed;left:50%;bottom:clamp(2.2rem,8vh,5rem);width:min(40rem,90vw);transform:translateX(-50%);text-align:center;opacity:0;visibility:hidden}
+.cap h2{font:300 clamp(1.9rem,4.6vw,3.2rem)/1.1 var(--serif)}
+.cap h2 em{color:var(--gold)}
+.cap p{margin-top:.7rem;color:var(--mist)}
+.cap p a{margin:0 .6rem}
+.dots{position:fixed;right:1.1rem;top:50%;transform:translateY(-50%);display:grid;gap:.9rem;z-index:3}
+.dots button{width:11px;height:11px;border-radius:50%;border:1px solid var(--gold);background:transparent;padding:0;cursor:pointer}
+.dots button.on{background:var(--gold)}
+.fallback{position:fixed;inset:0;display:none;place-items:center;text-align:center;padding:2rem;font:300 2rem var(--serif)}
+</style>
+</head>
+<body>
+<canvas id="gl" aria-hidden="true"></canvas>
+<div class="vig"></div>
+<div class="hud" id="hud"><b id="bugs">12,000</b><span>open bugs</span></div>
+
+<div class="cap" data-i="0"><h2>Software is full of bugs.<br><em>I find them.</em></h2><p>I'm Dinesh Karthik. Scroll to fix them.</p></div>
+<div class="cap" data-i="1"><h2>QA engineer. <em>Mumbai.</em></h2><p>Every bug found, filed and closed. Zero open.</p></div>
+<div class="cap" data-i="2"><h2>Tested <em>block by block.</em></h2><p>About 1.5 years testing products at a software and blockchain technology company. B.Sc IT, University of Mumbai.</p></div>
+<div class="cap" data-i="3"><h2>Test cases, bug reports, <em>and code.</em></h2><p>Manual testing, bug reporting, HTML, CSS, JavaScript, Python and Java basics.</p></div>
+<div class="cap" data-i="4"><h2>Open to QA and web roles.</h2><p><a href="https://github.com/dinesh-karthik-qa">GitHub</a><a href="mailto:your-email@example.com">your-email@example.com</a></p></div>
+
+<nav class="dots" aria-label="Sections"></nav>
+<div class="fallback" id="fb">Dinesh Karthik<br>QA engineer, Mumbai</div>
+<div id="space"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+const STAGES = 5, caps = [...document.querySelectorAll('.cap')];
+const reduce = matchMedia('(prefers-reduced-motion:reduce)').matches;
+const dots = document.querySelector('.dots'), hud = document.getElementById('hud'), bugsEl = document.getElementById('bugs');
+let target = 0, cur = 0, mx = .5, my = .5, burst = 0;
+const maxScroll = () => document.documentElement.scrollHeight - innerHeight;
+caps.forEach((_, i) => { const b = document.createElement('button'); b.setAttribute('aria-label', 'Go to section ' + (i + 1));
+  b.onclick = () => scrollTo({top: i / (STAGES - 1) * maxScroll(), behavior: reduce ? 'auto' : 'smooth'}); dots.appendChild(b); });
+const dotEls = [...dots.children];
+addEventListener('scroll', () => target = (scrollY / maxScroll()) * (STAGES - 1));
+addEventListener('pointermove', e => { mx = e.clientX / innerWidth; my = e.clientY / innerHeight; });
+addEventListener('pointerdown', e => { if (!e.target.closest('a,button') && !reduce) burst = 1; });
+
+function ui() {
+  caps.forEach((c, i) => { const o = Math.max(0, Math.min(1, 1 - Math.abs(cur - i) * 2.4));
+    c.style.opacity = o; c.style.visibility = o < .02 ? 'hidden' : 'visible'; c.style.transform = `translate(-50%,${(1 - o) * 18}px)`;
+    c.style.pointerEvents = o > .5 ? 'auto' : 'none'; dotEls[i].classList.toggle('on', o > .5); });
+  const left = Math.round(12000 * (1 - Math.min(1, Math.max(0, cur))));
+  bugsEl.textContent = left.toLocaleString('en-US'); hud.classList.toggle('ok', left === 0);
+}
+
+/* ---------- target shapes, one position per particle per stage ---------- */
+function textPts(lines, N, world) {
+  const cw = 1200, lh = 260, ch = lh * lines.length + 40, c = document.createElement('canvas'); c.width = cw; c.height = ch;
+  const x = c.getContext('2d'); x.fillStyle = '#fff'; x.textAlign = 'center'; x.textBaseline = 'middle';
+  const face = '"Arial Black",Arial,sans-serif'; x.font = '900 220px ' + face;
+  const w = Math.max(...lines.map(l => x.measureText(l).width)), fs = Math.min(220, 220 * cw * .92 / w);
+  x.font = `900 ${fs}px ` + face; lines.forEach((l, i) => x.fillText(l, cw / 2, 20 + lh * (i + .5)));
+  const d = x.getImageData(0, 0, cw, ch).data, px = [];
+  for (let j = 0; j < ch; j += 3) for (let i = 0; i < cw; i += 3) if (d[(j * cw + i) * 4 + 3] > 128) px.push(i, j);
+  const out = new Float32Array(N * 3), sc = world / cw, n = px.length / 2;
+  for (let k = 0; k < N; k++) { const p = ((Math.random() * n) | 0) * 2;
+    out[k * 3] = (px[p] - cw / 2) * sc; out[k * 3 + 1] = -(px[p + 1] - ch / 2) * sc; out[k * 3 + 2] = (Math.random() - .5) * 1.2; }
+  return out;
+}
+const R = (a = 1) => (Math.random() - .5) * 2 * a;
+function chaosPts(N) { const o = new Float32Array(N * 3); for (let i = 0; i < N; i++) { const r = 14 + Math.random() * 30, t = Math.random() * 6.283, u = R();
+  const s = Math.sqrt(1 - u * u); o[i * 3] = r * s * Math.cos(t) * 1.5; o[i * 3 + 1] = r * s * Math.sin(t) * .9; o[i * 3 + 2] = r * u; } return o; }
+function cubePts(N) { const o = new Float32Array(N * 3), g = 9, sz = 2.6;
+  for (let i = 0; i < N; i++) { const cx = ((Math.random() * 3) | 0) - 1, cy = ((Math.random() * 3) | 0) - 1, cz = ((Math.random() * 3) | 0) - 1;
+    const a = (Math.random() * 3) | 0, s = Math.random() < .5 ? -sz : sz, v = [R(sz), R(sz), R(sz)]; v[a] = s;
+    o[i * 3] = cx * g + v[0]; o[i * 3 + 1] = cy * g * .8 + v[1]; o[i * 3 + 2] = cz * g + v[2]; } return o; }
+function helixPts(N) { const o = new Float32Array(N * 3);
+  for (let i = 0; i < N; i++) { const y = R(20), t = y * .45, rung = Math.random() < .15, st = i % 2 ? Math.PI : 0, r = 8;
+    let x = r * Math.cos(t + st), z = r * Math.sin(t + st);
+    if (rung) { const m = Math.random(); x = r * Math.cos(t) * (1 - 2 * m); z = r * Math.sin(t) * (1 - 2 * m); }
+    o[i * 3] = x + R(.3); o[i * 3 + 1] = y; o[i * 3 + 2] = z + R(.3); } return o; }
+
+/* ---------- shaders ---------- */
+const VERT = `
+attribute vec3 p0,p1,p2,p3,p4; attribute vec4 rnd;
+uniform float uProg,uTime,uBurst,uPx; uniform vec3 uMouse; varying vec3 vCol;
+vec3 pick(int i){ if(i==0)return p0; if(i==1)return p1; if(i==2)return p2; if(i==3)return p3; return p4; }
+vec3 colOf(int i){ if(i==0)return vec3(1.,.35,.24); if(i==1)return vec3(1.,.78,.42); if(i==2)return vec3(.3,.94,.78); if(i==3)return vec3(.42,.66,1.); return vec3(1.,.85,.54); }
+void main(){
+  float s=clamp(uProg,0.,3.9999); int i=int(floor(s)); float f=fract(s); float e=f*f*(3.-2.*f);
+  vec3 pos=mix(pick(i),pick(i+1),e);
+  vec3 dir=normalize(rnd.xyz-.5+vec3(.001));
+  pos+=dir*sin(3.14159*e)*(6.+rnd.w*12.);
+  float chaos=1.-smoothstep(0.,1.,s);
+  float t=uTime;
+  pos+=vec3(sin(t*(.5+rnd.x*.8)+rnd.y*30.),sin(t*(.4+rnd.y*.8)+rnd.z*30.),cos(t*(.5+rnd.z*.8)+rnd.x*30.))*(.12+chaos*3.*(.5+rnd.w));
+  vec2 d=pos.xy-uMouse.xy; float push=smoothstep(8.,0.,length(d)); pos.xy+=normalize(d+vec2(.0001))*push*push*6.;
+  pos+=dir*uBurst*(8.+rnd.w*14.);
+  vec4 mv=modelViewMatrix*vec4(pos,1.); gl_Position=projectionMatrix*mv;
+  gl_PointSize=uPx*(.8+rnd.w*1.4)*(36./-mv.z);
+  vCol=mix(colOf(i),colOf(i+1),e)*(.65+.7*rnd.w)+vec3(push*.5);
+}`;
+const FRAG = `varying vec3 vCol; void main(){ float d=length(gl_PointCoord-.5); if(d>.5)discard; float a=smoothstep(.5,0.,d); gl_FragColor=vec4(vCol,a*a*.9+.1*a); }`;
+
+try {
+  const renderer = new THREE.WebGLRenderer({canvas: document.getElementById('gl'), antialias: false});
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); renderer.setClearColor(0x04070a);
+  const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(55, 1, .1, 300);
+  const N = innerWidth < 760 ? 7000 : 12000;
+  const geo = new THREE.BufferGeometry(), set = (n, a, sz) => geo.setAttribute(n, new THREE.BufferAttribute(a, sz));
+  const rnd = new Float32Array(N * 4).map(Math.random);
+  const draw = () => {
+    const P = [chaosPts(N), textPts(['DINESH', 'KARTHIK'], N, 30), cubePts(N), helixPts(N), textPts(['HIRE ME'], N, 30)];
+    set('position', P[0], 3); P.forEach((a, i) => set('p' + i, a, 3)); set('rnd', rnd, 4);
+  };
+  const mat = new THREE.ShaderMaterial({vertexShader: VERT, fragmentShader: FRAG, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+    uniforms: {uProg: {value: 0}, uTime: {value: 0}, uBurst: {value: 0}, uPx: {value: 2.4 * renderer.getPixelRatio()}, uMouse: {value: new THREE.Vector3()}}});
+  const pts = new THREE.Points(geo, mat); pts.frustumCulled = false; scene.add(pts);
+  let camZ = 42;
+  const resize = () => { renderer.setSize(innerWidth, innerHeight, false); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();
+    camZ = Math.max(42, 34 / (2 * Math.tan(27.5 * Math.PI / 180) * camera.aspect)); };
+  addEventListener('resize', resize); resize();
+  (document.fonts ? document.fonts.ready : Promise.resolve()).then(draw);
+  const clock = new THREE.Clock(), v = new THREE.Vector3();
+  (function loop() {
+    requestAnimationFrame(loop);
+    cur += (target - cur) * (reduce ? 1 : .07); burst *= reduce ? 0 : .94;
+    camera.position.set((mx - .5) * 10, -(my - .5) * 6, camZ); camera.lookAt(0, 0, 0); camera.updateMatrixWorld();
+    v.set(mx * 2 - 1, -(my * 2 - 1), .5).unproject(camera).sub(camera.position).normalize();
+    const k = -camera.position.z / v.z; mat.uniforms.uMouse.value.copy(camera.position).addScaledVector(v, k);
+    mat.uniforms.uProg.value = cur; mat.uniforms.uTime.value = reduce ? 0 : clock.getElapsedTime(); mat.uniforms.uBurst.value = burst;
+    ui(); renderer.render(scene, camera);
+  })();
+} catch (err) {
+  console.warn('WebGL scene could not start:', err); document.getElementById('fb').style.display = 'grid';
+  (function loop() { requestAnimationFrame(loop); cur += (target - cur) * .1; ui(); })();
+}
+target = (scrollY / maxScroll() || 0) * (STAGES - 1);
+</script>
+</body>
+</html>
